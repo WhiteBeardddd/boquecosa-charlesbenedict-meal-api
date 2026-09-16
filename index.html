@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chep's BBQ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #1c1714;
+            color: #f3e9dc;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            color: #ff7a2f;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            color: #b8a898;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px 14px;
+            border: 2px solid #3a302a;
+            border-radius: 8px;
+            background: #2a221e;
+            color: #f3e9dc;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ff7a2f;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #ff7a2f;
+            color: #1c1714;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #ff9557;
+        }
+
+        button.secondary {
+            background: #3a302a;
+            color: #f3e9dc;
+        }
+
+        button.secondary:hover {
+            background: #4a3e36;
+        }
+
+        #menuList {
+            list-style: none;
+        }
+
+        #menuList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a221e;
+            border-left: 4px solid #ff7a2f;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .item-id {
+            display: inline-block;
+            min-width: 32px;
+            padding: 4px 8px;
+            margin-right: 12px;
+            border-radius: 6px;
+            background: #3a302a;
+            color: #ff7a2f;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .item-price {
+            color: #ffb347;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        #menuList li.message {
+            justify-content: center;
+            color: #b8a898;
+            border-left-color: #3a302a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Chep's BBQ</h1>
+            <p class="tagline">Grilled favorites, straight from the uling.</p>
+        </header>
+
+        <div class="controls">
+            <button onclick="loadMenu()">Load Menu</button>
+            <input type="text" id="searchInput" placeholder="Search by name or ID">
+            <button class="secondary" onclick="searchMenu()">Search</button>
+        </div>
+
+        <ul id="menuList"></ul>
+    </div>
+
+<script>
+    async function loadMenu() {
+        await fetchAndDisplay('/menu');
+    }
+
+    async function searchMenu() {
+        const query = document.getElementById('searchInput').value.trim();
+        await fetchAndDisplay(`/menu/search?q=${encodeURIComponent(query)}`);
+    }
+
+    async function fetchAndDisplay(url) {
+        const menuList = document.getElementById('menuList');
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const items = await response.json();
+
+            menuList.innerHTML = '';
+
+            if (items.length === 0) {
+                menuList.innerHTML = '<li class="message">No items found.</li>';
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <span class="item-id">${item.id}</span>
+                        <span class="item-name">${item.name}</span>
+                    </div>
+                    <span class="item-price">₱${item.price}</span>
+                `;
+                menuList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error fetching menu:', error);
+            menuList.innerHTML = '<li class="message">Failed to load menu.</li>';
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') searchMenu();
+    });
+</script>
+
+</body>
+</html>
